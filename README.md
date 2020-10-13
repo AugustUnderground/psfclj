@@ -4,7 +4,21 @@ PSF parser for JVM written in clojure.
 
 ## Installation
 
-Download from http://example.com/FIXME.
+Requires [Leiningen](https://leiningen.org/index.html) to run, see
+their docs for more information.
+
+### Build and Install as MAVEN dependency
+
+```bash
+$ lein pom && mvn install
+```
+
+### Build JAR/UBERJAR
+
+```bash
+$ lein jar
+$ lein uberjar
+```
 
 ## Usage
 
@@ -46,24 +60,36 @@ The default grammar can be found in `resources/psf.bnf`:
 <attribute> = <key> [<unit>] <values> [<prop>]
             | <key> <types> <prop>
             | <key> <struct> [<prop>]
+
 <key> = " * "
+
 <unit> = " * "
+
 values = <value>
        | ( <value> * )
+
 <value> = #'\S+'
         | " * "
+
 <types> = <type>
         | <type> *
+
 <type> = FLOAT
        | DOUBLE
        | COMPLEX
+
 <prop> = PROP( <attribute> * )
+
 <struct> = STRUCT( <attribute> * )
+
 ```
 
-### Bugs
+## API Reference
+
+## TODO
 
 - [ ] Can't read PSF with `<unit>` in `VALUE` section.
+- [ ] No tests implemented
 
 ## License
 
