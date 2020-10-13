@@ -1,0 +1,23 @@
+<psf> = {section}
+section = 'HEADER'  <#'\s+'> {attribute <#'\s*'>}
+        | 'TYPE'    <#'\s+'> {attribute <#'\s*'>}
+        | 'SWEEP'   <#'\s+'> {attribute <#'\s*'>}
+        | 'TRACE'   <#'\s+'> {attribute <#'\s*'>}
+        | 'VALUE'   <#'\s+'> {attribute <#'\s*'>}
+        | 'END'     <#'\s*'>
+attribute = key {<#' +'> unit} <#' +'> values [<#'\s+'> prop]
+          | key <#' +'> types <#'\s+'> prop
+          | key <#' +'> struct [<#'\s*'> prop]
+<key> = <#'\"'> #'[^\"]+' <#'\"'>
+unit = <#'\"'> #'[^\"]+' <#'\"'>
+values = value
+       | <'('> {<#'\s*'> value <#'\s*'>} <')'>
+<value> = #'\S+'
+        | <#'\"'> #'[^\"]*' <#'\"'>
+types = type
+      | type {<#' +'> type}
+<type> = 'FLOAT'
+       | 'DOUBLE'
+       | 'COMPLEX'
+prop = <'PROP('> <#'\s*'> {attribute <#'\s*'>} <')'>
+struct = <'STRUCT('> <#'\s*'> {attribute <#'\s*'>} <')'>
