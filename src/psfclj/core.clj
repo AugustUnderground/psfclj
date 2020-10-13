@@ -1,21 +1,27 @@
 (ns psfclj.core
     (:require [instaparse.core :as insta]
-              [clojure.tools.trace :as tr]
+              [clojure.tools.cli :refer [parse-opts]]
               [clojure.java.io :as io])
     (:gen-class))
 
-(def help (str "Usage: psfclj [options] <file>\n"
-               "Read a PSF Data from file.\n\n"
-               "Options:\n"
-               "\t-g <file>\t\t Specify Grammer file."
-               "\t-j\t\tJSON\n"
-               "\t-x\t\tXML (NOT IMPLEMENTED!)\n"
-               "\t-c\t\tCSV (values only)\n"
-               "<file \tPath to valid PSF\n"
-               "The output will be written to stdout and "
-               "can be redirected into a file.\n\n"))
+(def psf-help (str "Usage: psfclj [options] <file>\n"
+                   "Read a PSF Data from file.\n\n"
+                   "Options:\n"
+                   "\t-g <file>\t\t Specify Grammer file."
+                   "\t-j\t\tJSON\n"
+                   "\t-x\t\tXML (NOT IMPLEMENTED!)\n"
+                   "\t-c\t\tCSV (values only)\n"
+                   "<file \tPath to valid PSF\n"
+                   "The output will be written to stdout and "
+                   "can be redirected into a file.\n\n"))
 
-(def psf-bnf (insta/parser (clojure.java.io/resource "../resources/psf.bnf")))
+(def psf-cli-options
+    [["-g" "--grammar" 
+     ]
+    ]
+)
+
+(def psf-bnf (insta/parser (clojure.java.io/resource "psf.bnf")))
 
 (defn transpose [ll]
   (apply map list ll))
@@ -81,5 +87,5 @@
     (into {} [HEADER TYPE SWEEP TRACE VALUE])))
 
 (defn -main [& args] 
-  (parse-psf (psf-bnf (slurp file-name)))
+  (println args)
 )

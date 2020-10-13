@@ -4,7 +4,7 @@
   :license {:name "MIT License (MIT)"
             :url "https://mit-license.org"}
   :dependencies [[org.clojure/clojure "1.10.0"]
-                 [org.clojure/tools.trace "0.7.9"]
+                 [org.clojure/tools.cli "1.0.194"]
                  [instaparse "1.4.10"]]
   :main ^:skip-aot psfclj.core
   :target-path "target/%s"

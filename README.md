@@ -81,7 +81,6 @@ values = <value>
 <prop> = PROP( <attribute> * )
 
 <struct> = STRUCT( <attribute> * )
-
 ```
 
 ## API Reference
