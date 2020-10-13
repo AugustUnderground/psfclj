@@ -28,19 +28,19 @@
 (defn psf-section [psf-file psf-section]
   (first (filter #(= (second %) psf-section) psf-file)))
 
-(defn map-field [field]
+(defn parse-field [field]
   (cond (= (first field) :section)
-          {(second field) (into {} (map map-field (drop 2 field)))}
+          {(second field) (into {} (map parse-field (drop 2 field)))}
         (= (first field) :attribute)
           {(second field) 
            (if (> (count field) 3)
-               (into {} (map map-field (drop 2 field)))
+               (into {} (map parse-field (drop 2 field)))
                (if (<= (count (last field)) 2)
                    (last (last field))
                    (rest (last field))))}
         (or (= (first field) :prop)
             (= (first field) :struct))
-          (into {} (map map-field (rest field)))
+          (into {} (map parse-field (rest field)))
         (or (= (first field) :values)
             (= (first field) :types)
             (= (first field) :unit))
@@ -50,7 +50,7 @@
         :else
           {}))
 
-(defn ^:dynamic map-value [values parameters]
+(defn parse-value [values parameters]
   (into {} 
     (map (fn [param]
           (let [param-value (map #(first (drop 2 %))
@@ -64,12 +64,11 @@
                  (map #(read-string (second %)) param-value))}))
          parameters)))
 
-(defn map-psf [file-name]
-  (let [psf     (psf-bnf (slurp file-name))
-        HEADER  (map-field (psf-section psf "HEADER"))
-        TYPE    (map-field (psf-section psf "TYPE"))
-        SWEEP   (map-field (psf-section psf "SWEEP"))
-        TRACE   (map-field (psf-section psf "TRACE"))
+(defn parse-psf [psf]
+  (let [HEADER  (parse-field (psf-section psf "HEADER"))
+        TYPE    (parse-field (psf-section psf "TYPE"))
+        SWEEP   (parse-field (psf-section psf "SWEEP"))
+        TRACE   (parse-field (psf-section psf "TRACE"))
         params (into {} (cons {(first (keys (SWEEP "SWEEP"))) nil}
                   (map (fn [tr]
                         (let [types (get (TYPE "TYPE") (second tr))
@@ -78,17 +77,9 @@
                                           (zipmap p (repeat (count p) nil))
                                           nil)}))
                        (TRACE "TRACE"))))
-        VALUE   (map-value (drop 2 (psf-section psf "VALUE")) params)]
+        VALUE   (parse-value (drop 2 (psf-section psf "VALUE")) params)]
     (into {} [HEADER TYPE SWEEP TRACE VALUE])))
 
-
-;(def psf     (psf-bnf (slurp "./resources/noise3.noise")))
-;(def psf     (psf-bnf (slurp "./resources/noise2.noise")))
-;(def psf     (psf-bnf (slurp "./resources/dc2.dc")))
-
-(def psf-map (map-psf "./resources/dc2.dc"))
-(def psf-map (map-psf "./resources/noise2.noise"))
-
 (defn -main [& args] 
-  
+  (parse-psf (psf-bnf (slurp file-name)))
 )
