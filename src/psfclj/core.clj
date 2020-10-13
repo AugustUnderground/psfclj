@@ -28,7 +28,7 @@
 (defn psf-section [psf-file psf-section]
   (first (filter #(= (second %) psf-section) psf-file)))
 
-(defn ^:dynamic map-field [field]
+(defn map-field [field]
   (cond (= (first field) :section)
           {(second field) (into {} (map map-field (drop 2 field)))}
         (= (first field) :attribute)
@@ -51,18 +51,18 @@
           {}))
 
 (defn ^:dynamic map-value [values parameters]
-  (into {}
-  (map (fn [param]
-         (let [param-value (map #(first (drop 2 %))
-                                (filter #(= (second %) (first param)) 
-                                        values))]
-            {param 
+  (into {} 
+    (map (fn [param]
+          (let [param-value (map #(first (drop 2 %))
+                                 (filter #(= (second %) (first param)) 
+                                 values))]
+            {(first param) 
              (if (map? (second param))
-              (into {} (map #(hash-map %1 (map read-string %2))
-                            (keys (second param))
-                            (transpose (map rest param-value))))
-              (map #(read-string (last %)) param-value))}))
-       parameters)))
+                 (into {} (map #(hash-map %1 (map read-string %2))
+                               (keys (second param))
+                               (transpose (map rest param-value))))
+                 (map #(read-string (second %)) param-value))}))
+         parameters)))
 
 (defn map-psf [file-name]
   (let [psf     (psf-bnf (slurp file-name))
@@ -87,7 +87,7 @@
 ;(def psf     (psf-bnf (slurp "./resources/dc2.dc")))
 
 (def psf-map (map-psf "./resources/dc2.dc"))
-;(def psf-map (map-psf "./resources/noise2.noise"))
+(def psf-map (map-psf "./resources/noise2.noise"))
 
 (defn -main [& args] 
   
