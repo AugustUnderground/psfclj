@@ -17,6 +17,17 @@
 
 (def psf-bnf (insta/parser (clojure.java.io/resource "../resources/psf.bnf")))
 
+(defn transpose [ll]
+  (apply map list ll))
+
+(defn depth [hm]
+  (if (map? hm) 
+      (inc (apply max (map depth (vals hm)))) 
+      0))
+
+(defn psf-section [psf-file psf-section]
+  (first (filter #(= (second %) psf-section) psf-file)))
+
 (defn ^:dynamic map-field [field]
   (cond (= (first field) :section)
           {(second field) (into {} (map map-field (drop 2 field)))}
@@ -39,27 +50,19 @@
         :else
           {}))
 
-(defn map-value [psf-values map-values]
-  (if (empty? psf-values)
-    {"VALUE" map-values}
-    (let [field (map-field (first psf-values))
-          parameter (first (keys field))
-          values (vals field)]
-      (map-value (rest psf-values)
-                 (into {} 
-                    (map (fn [kv]
-                           (if (= (first kv) parameter)
-                              {parameter (cons values (second kv))}
-                              {(first kv) (second kv)}))
-                         map-values))))))
-
-(defn psf-section [psf-file psf-section]
-  (first (filter #(= (second %) psf-section) psf-file)))
-
-(defn depth [hm]
-  (if (map? hm) 
-      (inc (apply max (map depth (vals hm)))) 
-      0))
+(defn ^:dynamic map-value [values parameters]
+  (into {}
+  (map (fn [param]
+         (let [param-value (map #(first (drop 2 %))
+                                (filter #(= (second %) (first param)) 
+                                        values))]
+            {param 
+             (if (map? (second param))
+              (into {} (map #(hash-map %1 (map read-string %2))
+                            (keys (second param))
+                            (transpose (map rest param-value))))
+              (map #(read-string (last %)) param-value))}))
+       parameters)))
 
 (defn map-psf [file-name]
   (let [psf     (psf-bnf (slurp file-name))
@@ -67,68 +70,25 @@
         TYPE    (map-field (psf-section psf "TYPE"))
         SWEEP   (map-field (psf-section psf "SWEEP"))
         TRACE   (map-field (psf-section psf "TRACE"))
-
         params (into {} (cons {(first (keys (SWEEP "SWEEP"))) nil}
-                              (map (fn [tr]
-                                    (let [types (get (TYPE "TYPE") (second tr))]
-                                      {(first tr) (if (> (depth types) 1)
-                                                      (zipmap (keys types) 
-                                                              (repeat (count (keys types)) nil))
-                                                      nil)}))
-                                   (TRACE "TRACE"))))
+                  (map (fn [tr]
+                        (let [types (get (TYPE "TYPE") (second tr))
+                              p (filter #(and (not= % "key")(not= % "master")) (keys types))]
+                          {(first tr) (if (> (depth types) 1)
+                                          (zipmap p (repeat (count p) nil))
+                                          nil)}))
+                       (TRACE "TRACE"))))
+        VALUE   (map-value (drop 2 (psf-section psf "VALUE")) params)]
+    (into {} [HEADER TYPE SWEEP TRACE VALUE])))
 
 
-        VALUE   (map-value (drop 2 (psf-section psf "VALUE"))
-                           (zipmap params (repeat (count params) [])))
-        psf-map (into {} [HEADER TYPE SWEEP TRACE VALUE])]
-    psf-map))
+;(def psf     (psf-bnf (slurp "./resources/noise3.noise")))
+;(def psf     (psf-bnf (slurp "./resources/noise2.noise")))
+;(def psf     (psf-bnf (slurp "./resources/dc2.dc")))
 
-
-(def psf     (psf-bnf (slurp "./resources/noise2.noise")))
-(def psf     (psf-bnf (slurp "./resources/dc2.dc")))
-
-(def HEADER  (map-field (psf-section psf "HEADER")))
-(def TYPE    (map-field (psf-section psf "TYPE")))
-(def SWEEP   (map-field (psf-section psf "SWEEP")))
-(def TRACE   (map-field (psf-section psf "TRACE")))
-
-(def params (into {} (cons {(first (keys (SWEEP "SWEEP"))) nil}
-  (map (fn [tr]
-        (let [types (get (TYPE "TYPE") (second tr))]
-          {(first tr) (if (> (depth types) 1)
-                          (zipmap (keys types) (repeat (count (keys types)) nil))
-                          nil)}))
-       (TRACE "TRACE")))))
-
-(defn map-value [values map-values]
-    (if values
-      (let [field (map-field values)
-            id (first (keys field))
-            value (first (vals field))
-            map-val (if (map? (map-values id))
-                        (reduce (fn [map-val enum-id]
-                                  (assoc-in map-val [id (second enum-id)] (cons )))
-                                map-values 
-                                (map #(vector %1 %2) (keys (map-values id))
-                                                     (first (vals (value)))))
-          (assoc-in map-values [id] (cons (first value) 
-                                          (map-values id))))]
-      (map-value (rest values) map-val))
-      {"VALUES" (into {} values)}))
-
-(def value (psf-section psf "VALUE"))
-(def elem (second (drop 2 value)))
-(map-value [elem] params)
-
-
-(def VALUE   (map-value (drop 2 (psf-section psf "VALUE"))
-                   (zipmap params (repeat (count params) []))))
-;
-;(def psf-map (into {} [HEADER TYPE SWEEP TRACE VALUE]))
-
-;(def psf-map (map-psf "./resources/dc2.dc"))
+(def psf-map (map-psf "./resources/dc2.dc"))
 ;(def psf-map (map-psf "./resources/noise2.noise"))
 
 (defn -main [& args] 
   
-  )
+)
