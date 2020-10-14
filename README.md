@@ -7,10 +7,10 @@ PSF parser for JVM written in clojure.
 Requires [Leiningen](https://leiningen.org/index.html) to run, see
 their docs for more information.
 
-### Build and Install as MAVEN dependency
+### Build and Install as MAVEN dependency for Java InterOp
 
 ```bash
-$ lein pom && mvn install
+$ lein pom && lein install
 ```
 
 ### Build JAR/UBERJAR
