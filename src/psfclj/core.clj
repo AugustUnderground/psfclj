@@ -3,7 +3,8 @@
               [clojure.tools.cli :refer [parse-opts]]
               [clojure.data.json :as json]
               [clojure.java.io :as io])
-    (:gen-class))
+    (:gen-class
+     :name PSFParser))
 
 (def psf-help (str "Usage: psfclj [options] <file>\n"
                    "Read a PSF Data from <file>.\n\n"
