@@ -1,10 +1,20 @@
-target = psfconvert
+target = ./target/psfconvert
+wrapper = ./resources/wrapper.sh
+uberjar = ./target/uberjar/*SNAPSHOT-standalone.jar
 
 all:
 	lein uberjar
-	cat ./resources/wrapper.sh ./target/uberjar/*SNAPSHOT-standalone.jar > ./target/$(target)
-	chmod +x ./target/psfconvert
+	cat $(wrapper) $(uberjar) > $(target)
+	chmod +x $(target)
 
 clean:
-	rm ./target/$(target)
+	rm $(target)
 	lein clean
+
+maven:
+	lein install
+	lein pom
+	mvn install
+
+install:
+	cp $(target) /usr/bin/psfconvert
