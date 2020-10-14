@@ -107,7 +107,8 @@
           (contains? (opts :options) :help)
             (println psf-help (opts :summary))
           :else
-            (let [file (first (opts :arguments))
+            (let [file (if (> (count (opts :arguments)) 0)
+                           (first (opts :arguments)) "")
                   psf-file (if (.exists (io/file file))
                                (slurp file)
                                (slurp *in*))
