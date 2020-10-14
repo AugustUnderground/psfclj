@@ -2,7 +2,7 @@
 
 PSF parser for JVM written in clojure.
 
-## Installation
+## Building
 
 Requires [Leiningen](https://leiningen.org/index.html) to run, see
 their docs for more information.
@@ -20,28 +20,37 @@ $ lein jar
 $ lein uberjar
 ```
 
+### Build Standalone Executable
+
+Simply run `make` and the `Makefile` will take care of it.
+The executable will be `./target/psfconvert`.
+
 ## Usage
 
-```bash
-    $ java -jar psfclj-0.1.0-standalone.jar [args]
-```
-
-## Options
+After building with lein you can run:
 
 ```bash
-psfclj [options] <file>
+$ java -jar psfclj-0.1.0-standalone.jar [options] <psf-file>
 ```
-Where `[options]` are:
+
+The standalone executable can be run like so:
+
+```bash
+$ psfconvert [options] <psf-file>
+```
+
+Depending on the option, this will produce output to `STDOUT`.
+This can be redirected to a file, or processed further with something
+like [jq](https://stedolan.github.io/jq/) 
+or [gron](https://github.com/TomNomNom/gron).
+If no `<psf-file>` is specified, it will try to read from `STDIN`.
+
+### Options
 
 - `-g <grammar>` Specify path to alternative `<grammar>`.
 - `-j` JSON output (default).
 - `-c` CSV output (values only).
-
-and `<file>` is a PSF.
-
-## Examples
-
-...
+- `-h` or `--help` for a short help.
 
 ## PSF BNF
 
@@ -84,6 +93,8 @@ values = <value>
 ```
 
 ## API Reference
+
+**TODO**
 
 ## TODO
 
