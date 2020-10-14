@@ -1,27 +1,33 @@
 (ns psfclj.core
     (:require [instaparse.core :as insta]
               [clojure.tools.cli :refer [parse-opts]]
+              [clojure.data.json :as json]
               [clojure.java.io :as io])
     (:gen-class))
 
 (def psf-help (str "Usage: psfclj [options] <file>\n"
-                   "Read a PSF Data from file.\n\n"
-                   "Options:\n"
-                   "\t-g <file>\t\t Specify Grammer file."
-                   "\t-j\t\tJSON\n"
-                   "\t-x\t\tXML (NOT IMPLEMENTED!)\n"
-                   "\t-c\t\tCSV (values only)\n"
-                   "<file \tPath to valid PSF\n"
+                   "Read a PSF Data from <file>.\n\n"
                    "The output will be written to stdout and "
-                   "can be redirected into a file.\n\n"))
+                   "can be redirected into a file.\n"
+                   "Options:\n"))
 
 (def psf-cli-options
-    [["-g" "--grammar" 
-     ]
-    ]
-)
-
-(def psf-bnf (insta/parser (clojure.java.io/resource "psf.bnf")))
+    [["-g" "--grammar BNF" 
+      "BNF Context Free Grammar File"
+      :default nil
+      :id :grammar
+      :validate [#(.exists (io/file %))
+                 "Specified grammar file doesn't exist."]]
+     ["-j" "--json"
+      "Output in JSON Format"
+      :id :json
+      :default true]
+     ["-c" "--csv"
+      "Output values in CSV Format"
+      :id :csv
+      :default false]
+     ["-h" "--help"
+      :id :help]])
 
 (defn transpose [ll]
   (apply map list ll))
@@ -57,6 +63,7 @@
           {}))
 
 (defn parse-value [values parameters]
+  {"VALUE" 
   (into {} 
     (map (fn [param]
           (let [param-value (map #(first (drop 2 %))
@@ -68,10 +75,11 @@
                                (keys (second param))
                                (transpose (map rest param-value))))
                  (map #(read-string (second %)) param-value))}))
-         parameters)))
+         parameters))})
 
-(defn parse-psf [psf]
-  (let [HEADER  (parse-field (psf-section psf "HEADER"))
+(defn parse-psf [psf-content psf-bnf]
+  (let [psf     (psf-bnf psf-content)
+        HEADER  (parse-field (psf-section psf "HEADER"))
         TYPE    (parse-field (psf-section psf "TYPE"))
         SWEEP   (parse-field (psf-section psf "SWEEP"))
         TRACE   (parse-field (psf-section psf "TRACE"))
@@ -86,6 +94,30 @@
         VALUE   (parse-value (drop 2 (psf-section psf "VALUE")) params)]
     (into {} [HEADER TYPE SWEEP TRACE VALUE])))
 
+(defn exit [status & {:keys [msg] :or {msg ""}}]
+  (if (not= status 0)
+    (binding [*out* *err*] (println msg))
+    (println msg))
+  (System/exit status))
+
 (defn -main [& args] 
-  (println args)
-)
+  (let [opts (parse-opts args psf-cli-options)]
+    (cond (opts :errors)
+            (exit -2 :msg (str "ERRORS:\n" (opts :errors)))
+          (contains? (opts :options) :help)
+            (println psf-help (opts :summary))
+          :else
+            (let [file (first (opts :arguments))
+                  psf-file (if (.exists (io/file file))
+                               (slurp file)
+                               (slurp *in*))
+                  psf-bnf (insta/parser (if (opts :grammar) 
+                                            (io/file (opts :grammar)) 
+                                            (io/resource "psf.bnf")))
+                  psf-map (parse-psf psf-file psf-bnf)]
+              (cond (get-in opts [:options :json])
+                      (println (json/write-str psf-map))
+                    (get-in opts [:options :csv])
+                      (println (json/write-str psf-map))
+                    :else
+                      (exit -3 :msg "No output Specified.\n"))))))
