@@ -7,7 +7,7 @@
                  [org.clojure/data.json "1.0.0"]
                  [org.clojure/tools.cli "1.0.194"]
                  [instaparse "1.4.10"]]
-  ;:main ^:skip-aot psfclj.core
   :target-path "target/%s"
-  :aot [psfclj.core]
+  :aot [psfclj.core psfclj.PSFParser]
+  :main psfclj.core ;^:skip-aot psfclj.core
   :profiles {:uberjar {:aot :all}})
