@@ -2,6 +2,7 @@
   (:require [instaparse.core :as insta]
             [clojure.tools.cli :refer [parse-opts]]
             [clojure.data.json :as json]
+            [clojure.string :as string]
             [clojure.java.io :as io])
   (:gen-class))
 
@@ -100,6 +101,26 @@
     (println msg))
   (System/exit status))
 
+(defn reduce-value [value-map & {:keys [parent-key flat-map] 
+                                 :or   {parent-key nil flat-map {}}}]
+  (if (not (empty? value-map))
+    (let [[param value] (first value-map)
+          param-key (if parent-key (str parent-key "." param) param)]
+      (reduce-value (rest value-map) 
+                    :parent-key parent-key 
+                    :flat-map (if (map? value)
+                                  (reduce-value value :parent-key param :flat-map flat-map)
+                                  (into {} (concat {param-key value}
+                                                   flat-map)))))
+    flat-map))
+
+(defn write-csv [psf-map]
+  (let [flat-map (reduce-value (psf-map "VALUE"))
+        header (string/join "," (keys flat-map))
+        values (map #(string/join "," %)
+                    (transpose (vals flat-map)))]
+    (string/join "\n" (cons header values))))
+
 (defn -main [& args] 
   (let [opts (parse-opts args psf-cli-options)]
     (cond (opts :errors)
@@ -116,9 +137,9 @@
                                             (io/file (opts :grammar)) 
                                             (io/resource "psf.bnf")))
                   psf-map (parse-psf psf-file psf-bnf)]
-              (cond (get-in opts [:options :json])
-                      (println (json/write-str psf-map))
-                    (get-in opts [:options :csv])
+              (cond (get-in opts [:options :csv])
+                      (println (write-csv psf-map))
+                    (get-in opts [:options :json])
                       (println (json/write-str psf-map))
                     :else
                       (exit -3 :msg "No output Specified.\n"))))))
