@@ -114,9 +114,10 @@ parser.parse(<file content>)
 ## TODO
 
 - [X] CSV Output
-- [ ] XML Output
+- [ ] Comment Code
 - [ ] Read PSF with `<unit>` in `VALUE` section.
 - [ ] Implemented tests
+- [ ] XML Output
 
 ## License
 
