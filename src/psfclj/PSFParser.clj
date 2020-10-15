@@ -10,11 +10,8 @@
               :methods [[setGrammar [String] void]
                         [parsePSF [String] clojure.lang.PersistentArrayMap]]))
 
-(defn psf-init [grammar-file-name]
-  (let [psf-bnf (insta/parser (if (.exists (io/file grammar-file-name))
-                                  (io/file grammar-file-name) 
-                                  (io/resource "psf.bnf")))]
-    [[] (atom {:grammar psf-bnf})]))
+(defn psf-init []
+  [[] (atom {:grammar (insta/parser (io/resource "psf.bnf"))})])
 
 (defn psf-setGrammar [this grammar-file-name]
   (let [psf-bnf (insta/parser (io/file grammar-file-name))]
