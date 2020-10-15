@@ -92,14 +92,31 @@ values = <value>
 <struct> = STRUCT( <attribute> * )
 ```
 
-## API Reference
+## Java API Reference
 
-**TODO**
+After installing with 
+
+```bash
+$ lein pom && lein install
+``` 
+
+the `psfclj*.jar` should be in your local repository and classpath.
+
+```java
+// Somehow read contents of PSF
+
+import psfclj.PSFParser.*;
+
+parser = new Parser();
+parser.parse(<file content>)
+```
 
 ## TODO
 
-- [ ] Can't read PSF with `<unit>` in `VALUE` section.
-- [ ] No tests implemented
+- [X] CSV Output
+- [ ] XML Output
+- [ ] Read PSF with `<unit>` in `VALUE` section.
+- [ ] Implemented tests
 
 ## License
 

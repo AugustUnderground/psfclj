@@ -87,7 +87,8 @@
         params (into {} (cons {(first (keys (SWEEP "SWEEP"))) nil}
                   (map (fn [tr]
                         (let [types (get (TYPE "TYPE") (second tr))
-                              p (filter #(and (not= % "key")(not= % "master")) (keys types))]
+                              p (filter #(and (not= % "key") (not= % "master")) 
+                                        (keys types))]
                           {(first tr) (if (> (depth types) 1)
                                           (zipmap p (repeat (count p) nil))
                                           nil)}))
@@ -103,16 +104,18 @@
 
 (defn reduce-value [value-map & {:keys [parent-key flat-map] 
                                  :or   {parent-key nil flat-map {}}}]
-  (if (not (empty? value-map))
+  (if (empty? value-map)
+    flat-map
     (let [[param value] (first value-map)
           param-key (if parent-key (str parent-key "." param) param)]
       (reduce-value (rest value-map) 
                     :parent-key parent-key 
                     :flat-map (if (map? value)
-                                  (reduce-value value :parent-key param :flat-map flat-map)
+                                  (reduce-value value 
+                                                :parent-key param 
+                                                :flat-map flat-map)
                                   (into {} (concat {param-key value}
-                                                   flat-map)))))
-    flat-map))
+                                                   flat-map)))))))
 
 (defn write-csv [psf-map]
   (let [flat-map (reduce-value (psf-map "VALUE"))
