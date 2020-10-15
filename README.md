@@ -103,12 +103,25 @@ $ lein pom && lein install
 the `psfclj*.jar` should be in your local repository and classpath.
 
 ```java
-// Somehow read contents of PSF
+import java.io.File;
+import java.io.IOException;
+import org.apache.commons.io.FileUtils;
+import clojure.lang.APersistentMap;
+import psfclj.PSFParser.Parser;
 
-import psfclj.PSFParser.*;
+public class PSFParserExample {
 
-parser = new Parser();
-parser.parse(<file content>)
+  public static void main(String[] args) throws IOException {
+    
+    Parser parser = new Parser();
+    
+    String psfContent = FileUtils.readFileToString(
+        new File("./noise2.noise"));
+    
+    APersistentMap map = parser.parsePSF(psfContent);
+      
+  }
+}
 ```
 
 ## TODO
