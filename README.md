@@ -52,6 +52,13 @@ If no `<psf-file>` is specified, it will try to read from `STDIN`.
 - `-c` CSV output (values only).
 - `-h` or `--help` for a short help.
 
+### Exit States
+
+- `0`: Success!
+- `-1`: Failed with parse error, usually caused by wrong sytnax.
+- `-2`: Erronious command line arguments.
+- `-3`: No output format specified.
+
 ## PSF BNF
 
 The default grammar can be found in `resources/psf.bnf`:

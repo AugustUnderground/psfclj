@@ -130,7 +130,7 @@
 (defn -main [& args] 
   (let [opts (parse-opts args psf-cli-options)]
     (cond (opts :errors)
-            (exit -2 :msg (str "ERRORS:\n" (opts :errors)))
+            (exit -2 :msg (str "ERRORS:" (opts :errors)))
           (contains? (opts :options) :help)
             (println psf-help (opts :summary))
           :else
@@ -143,10 +143,10 @@
                                             (io/file (opts :grammar)) 
                                             (io/resource "psf.bnf")))
                   psf-map (try (parse-psf psf-file psf-bnf)
-                               (catch Exception e (exit -42 :msg "Parse Error.\n")))]
+                               (catch Exception e (exit -1 :msg "Parse Error.")))]
               (cond (get-in opts [:options :csv])
                       (println (write-csv psf-map))
                     (get-in opts [:options :json])
                       (println (json/write-str psf-map))
                     :else
-                      (exit -3 :msg "No output Specified.\n"))))))
+                      (exit -3 :msg "No output format specified."))))))
