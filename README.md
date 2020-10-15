@@ -59,6 +59,16 @@ If no `<psf-file>` is specified, it will try to read from `STDIN`.
 - `-2`: Erronious command line arguments.
 - `-3`: No output format specified.
 
+### Example
+
+```bash
+# Read ./noise2.noise, pipe json output in gron and display with bat
+$ ./target/psfconvert -j ./noise2.noise | gron | bat
+
+# Read from stdin and redirect output into file
+$ cat ./noise2.noise | ./target/psfconvert -c > noise2.csv
+```
+
 ## PSF BNF
 
 The default grammar can be found in `resources/psf.bnf`:
@@ -108,6 +118,8 @@ $ lein pom && lein install
 ``` 
 
 the `psfclj*.jar` should be in your local repository and classpath.
+
+### Example
 
 ```java
 import java.io.File;
