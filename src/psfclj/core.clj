@@ -64,22 +64,25 @@
           {}))
 
 (defn parse-value [values parameters]
-  {"VALUE" 
-  (into {} 
-    (map (fn [param]
-          (let [param-value (map #(first (drop 2 %))
-                                 (filter #(= (second %) (first param)) 
-                                 values))]
-            {(first param) 
-             (if (map? (second param))
-                 (into {} (map #(hash-map %1 (map read-string %2))
-                               (keys (second param))
-                               (transpose (map rest param-value))))
-                 (map #(read-string (second %)) param-value))}))
-         parameters))})
+  (if values
+    {"VALUE" 
+    (into {} 
+      (map (fn [param]
+            (let [param-value (map #(first (drop 2 %))
+                                   (filter #(= (second %) (first param)) 
+                                   values))]
+              {(first param) 
+               (if (map? (second param))
+                   (into {} (map #(hash-map %1 (map read-string %2))
+                                 (keys (second param))
+                                 (transpose (map rest param-value))))
+                   (map #(read-string (second %)) param-value))}))
+           parameters))}
+    {}))
 
 (defn parse-psf [psf-content psf-bnf]
   (let [psf     (psf-bnf psf-content)
+        _       (when (insta/failure? psf) (throw (Exception. "Parse Error.")))
         HEADER  (parse-field (psf-section psf "HEADER"))
         TYPE    (parse-field (psf-section psf "TYPE"))
         SWEEP   (parse-field (psf-section psf "SWEEP"))
@@ -139,7 +142,8 @@
                   psf-bnf (insta/parser (if (opts :grammar) 
                                             (io/file (opts :grammar)) 
                                             (io/resource "psf.bnf")))
-                  psf-map (parse-psf psf-file psf-bnf)]
+                  psf-map (try (parse-psf psf-file psf-bnf)
+                               (catch Exception e (exit -42 :msg "Parse Error.\n")))]
               (cond (get-in opts [:options :csv])
                       (println (write-csv psf-map))
                     (get-in opts [:options :json])
