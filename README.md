@@ -62,8 +62,12 @@ If no `<psf-file>` is specified, it will try to read from `STDIN`.
 ### Example
 
 ```bash
-# Read ./noise2.noise, pipe json output in gron and display with bat
-$ ./target/psfconvert -j ./noise2.noise | gron | bat
+# Read ./noise2.noise, pipe json output in gron, 
+# grep for "fn.xf2" of "I0.M0.m1" and inspect with bat
+$ ./target/psfconvert -j ./noise2.noise | gron | grep "I0.M0.m1" | grep "fn.xf2" | bat
+
+# Pipe json ouput into fzf for interactive search
+$ ./target/psfconvert -j ./noise2.noise | gron | fzf
 
 # Read from stdin and redirect output into file
 $ cat ./noise2.noise | ./target/psfconvert -c > noise2.csv
