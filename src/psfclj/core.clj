@@ -80,6 +80,21 @@
            parameters))}
     {}))
 
+(defn reduce-value [value-map & {:keys [parent-key flat-map] 
+                                 :or   {parent-key nil flat-map {}}}]
+  (if (empty? value-map)
+    flat-map
+    (let [[param value] (first value-map)
+          param-key (if parent-key (str parent-key "." param) param)]
+      (reduce-value (rest value-map) 
+                    :parent-key parent-key 
+                    :flat-map (if (map? value)
+                                  (reduce-value value 
+                                                :parent-key param 
+                                                :flat-map flat-map)
+                                  (into {} (concat {param-key value}
+                                                   flat-map)))))))
+
 (defn parse-psf [psf-content psf-bnf]
   (let [psf     (psf-bnf psf-content)
         _       (when (insta/failure? psf) (throw (Exception. "Parse Error.")))
@@ -99,33 +114,19 @@
         VALUE   (parse-value (drop 2 (psf-section psf "VALUE")) params)]
     (into {} [HEADER TYPE SWEEP TRACE VALUE])))
 
-(defn exit [status & {:keys [msg] :or {msg ""}}]
-  (if (not= status 0)
-    (binding [*out* *err*] (println msg))
-    (println msg))
-  (System/exit status))
-
-(defn reduce-value [value-map & {:keys [parent-key flat-map] 
-                                 :or   {parent-key nil flat-map {}}}]
-  (if (empty? value-map)
-    flat-map
-    (let [[param value] (first value-map)
-          param-key (if parent-key (str parent-key "." param) param)]
-      (reduce-value (rest value-map) 
-                    :parent-key parent-key 
-                    :flat-map (if (map? value)
-                                  (reduce-value value 
-                                                :parent-key param 
-                                                :flat-map flat-map)
-                                  (into {} (concat {param-key value}
-                                                   flat-map)))))))
-
 (defn write-csv [psf-map]
   (let [flat-map (reduce-value (psf-map "VALUE"))
         header (string/join "," (keys flat-map))
         values (map #(string/join "," %)
                     (transpose (vals flat-map)))]
     (string/join "\n" (cons header values))))
+
+(defn exit [status & {:keys [msg] :or {msg ""}}]
+  (if (not= status 0)
+    (binding [*out* *err*] (println msg))
+    (println msg))
+  (System/exit status))
+
 
 (defn -main [& args] 
   (let [opts (parse-opts args psf-cli-options)]
