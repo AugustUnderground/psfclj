@@ -11,10 +11,7 @@ clean:
 	rm $(target)
 	lein clean
 
-maven:
-	lein install
-	lein pom
-	mvn install
-
 install:
+	lein pom
+	lein install
 	cp $(target) /usr/bin/psfconvert
